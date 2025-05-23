@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transform Domain Steganography</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js for interactivity -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <style>
+        @keyframes hover-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .hover-card {
+            transition: all 0.3s ease;
+        }
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #3b82f6, #2563eb, #1d4ed8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+         @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;700;800&family=Space+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Raleway', sans-serif;
+        }
+        
+        .mono-font {
+            font-family: 'Space Mono', monospace;
+        }
+        
+        .hero-gradient {
+            background-color: #000;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            height: 100vh;
+        }
+        
+        /* Background elements - rearranged for circuit lines to be in back */
+        .circuit-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.3) 25%, 
+                rgba(255, 255, 255, 0.3) 50%, 
+                rgba(255, 255, 255, 0.3) 75%,
+                rgba(255, 255, 255, 0) 100%);
+            opacity: 0.5;
+            animation: moveLine 6s infinite linear;
+            z-index: 0; /* Moved to back layer */
+        }
+        
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: 1;
+        }
+        
+        .gradient-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(0, 0, 0, 1) 0%, 
+                rgba(0, 0, 0, 0.95) 20%, 
+                rgba(0, 0, 0, 0.9) 40%, 
+                rgba(0, 0, 0, 0.95) 60%, 
+                rgba(0, 0, 0, 1) 80%, 
+                rgba(0, 0, 0, 1) 100%);
+            animation: gradientMove 15s infinite linear;
+            z-index: 2;
+        }
+        
+        .gradient-overlay {
+            position: absolute;
+            bottom: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, 
+                rgba(255, 255, 255, 0.15) 0%, 
+                rgba(255, 255, 255, 0.1) 30%, 
+                rgba(255, 255, 255, 0.08) 50%, 
+                rgba(255, 255, 255, 0.05) 70%, 
+                rgba(0, 0, 0, 0) 100%);
+            animation: pulseGradient 8s infinite ease-in-out;
+            z-index: 3;
+        }
+        
+        .glow-effect {
+            position: absolute;
+            top: 20%;
+            left: 30%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, 
+                rgba(255, 255, 255, 0.08) 0%, 
+                rgba(255, 255, 255, 0.05) 40%, 
+                rgba(0, 0, 0, 0) 70%);
+            filter: blur(30px);
+            animation: glowMove 12s infinite alternate ease-in-out;
+            z-index: 4;
+        }
+        
+        .glow-effect-2 {
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            width: 30%;
+            height: 30%;
+            background: radial-gradient(circle, 
+                rgba(255, 255, 255, 0.08) 0%, 
+                rgba(255, 255, 255, 0.05) 40%, 
+                rgba(0, 0, 0, 0) 70%);
+            filter: blur(30px);
+            animation: glowMove2 15s infinite alternate-reverse ease-in-out;
+            z-index: 4;
+        }
+        
+        /* Binary number animations */
+        .binary-byte {
+            position: absolute;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            z-index: 5;
+            user-select: none;
+            opacity: 0;
+        }
+        
+        .byte-1 {
+            top: 15%;
+            left: 20%;
+            animation: fadeInOut 8s infinite ease-in-out;
+        }
+        
+        .byte-2 {
+            top: 25%;
+            right: 25%;
+            animation: fadeInOut 8s infinite ease-in-out 1s;
+        }
+        
+        .byte-3 {
+            bottom: 30%;
+            left: 15%;
+            animation: fadeInOut 8s infinite ease-in-out 2s;
+        }
+        
+        .byte-4 {
+            bottom: 40%;
+            right: 20%;
+            animation: fadeInOut 8s infinite ease-in-out 3s;
+        }
+        
+        .byte-5 {
+            top: 40%;
+            left: 40%;
+            animation: fadeInOut 8s infinite ease-in-out 4s;
+        }
+        
+        .byte-6 {
+            top: 65%;
+            right: 35%;
+            animation: fadeInOut 8s infinite ease-in-out 5s;
+        }
+        
+        .byte-7 {
+            top: 75%;
+            left: 30%;
+            animation: fadeInOut 8s infinite ease-in-out 6s;
+        }
+        
+        .byte-8 {
+            top: 20%;
+            left: 70%;
+            animation: fadeInOut 8s infinite ease-in-out 7s;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% {
+                opacity: 0;
+                transform: translateY(0);
+            }
+            30%, 70% {
+                opacity: 0.8;
+                transform: translateY(-10px);
+            }
+        }
+        
+        @keyframes moveLine {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+        
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(30deg);
+            animation: shine 4s infinite ease-in-out;
+        }
+        
+        @keyframes shine {
+            0%, 100% {
+                transform: rotate(30deg) translateX(-200%);
+            }
+            50% {
+                transform: rotate(30deg) translateX(200%);
+            }
+        }
+        
+        @keyframes gradientMove {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+        
+        @keyframes pulseGradient {
+            0%, 100% {
+                opacity: 0.4;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes glowMove {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(10%, 10%);
+            }
+        }
+        
+        @keyframes glowMove2 {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(-10%, 5%);
+            }
+        }
+        
+        .content-container {
+            position: relative;
+            z-index: 10;
+        }
+        
+        .typewriter-text {
+            overflow: hidden;
+            border-right: 2px solid rgba(255, 255, 255, 0.7);
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+            display: inline-block;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: rgba(255, 255, 255, 0.7) }
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .gradient-border {
+            position: relative;
+            border-radius: 1rem;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ffffff, #cccccc, #999999);
+            z-index: -1;
+            border-radius: 1.1rem;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+        
+        .gradient-border:hover::before {
+            opacity: 1;
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        .btn-glow:hover {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+        
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 0.25rem 0.75rem;
+            margin: 0.25rem;
+        }
+        
+        .badge-light {
+            color: rgba(220, 220, 220, 0.8);
+            background-color: rgba(220, 220, 220, 0.1);
+            border: 1px solid rgba(220, 220, 220, 0.2);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen" style="background: radial-gradient(circle, #101010 0%, #0c0c0c 100%);">
+    <!-- Hero Section -->
+    <section class="hero-gradient min-h-screen flex flex-col justify-center items-center px-4 py-16 relative">
+        <!-- Background elements (rearranged to put circuit lines in back) -->
+
+        <!-- Other background elements on top -->
+        <div class="grid-overlay"></div>
+        <div class="gradient-bg"></div>
+        <div class="gradient-overlay"></div>
+        <div class="glow-effect"></div>
+        <div class="glow-effect-2"></div>
+
+        <!-- Circuit lines now at the back -->
+        <div class="circuit-line" style="top: 20%; width: 60%; left: 20%;"></div>
+        <div class="circuit-line" style="top: 35%; width: 30%; left: 10%; animation-delay: 2s;"></div>
+        <div class="circuit-line" style="top: 65%; width: 40%; left: 50%; animation-delay: 1s;"></div>
+        <div class="circuit-line" style="top: 80%; width: 70%; left: 15%; animation-delay: 3s;"></div>
+        
+        <!-- Binary bytes -->
+        <div class="binary-byte byte-1">01001010</div>
+        <div class="binary-byte byte-2">10110101</div>
+        <div class="binary-byte byte-3">00111001</div>
+        <div class="binary-byte byte-4">11010110</div>
+        <div class="binary-byte byte-6">10001101</div>
+        <div class="binary-byte byte-8">11100001</div>
+        
+        <div class="content-container container mx-auto max-w-6xl">
+            <div class="flex flex-col items-center">
+                <!-- Logo & Icon -->
+                <div class="mb-6 relative">
+                    <div class="absolute -inset-4 bg-gradient-to-r from-gray-400 to-gray-600 opacity-20 blur-lg rounded-full"></div>
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-400 float-animation" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Main heading with improved typography -->
+                <div class="pt-4 pb-6">
+                    <h1 class="text-5xl md:text-7xl font-extrabold bg-gradient-to-r from-gray-300 via-white to-gray-400 bg-clip-text text-transparent tracking-tighter leading-tight">HIDDENBYTE</h1>
+                  </div>
+                  
+                <!-- Tagline with typewriter effect -->
+                <div class="mb-6 mono-font">
+                    <div class="typewriter-text">
+                        <span class="text-gray-400">$ secure_transmission_initiated</span>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <p class="text-xl md:text-2xl text-gray-300 mb-6 max-w-2xl mx-auto leading-relaxed text-center">
+                    Sembunyikan rahasia Anda secara tersembunyi menggunakan transformasi matematis tingkat lanjut
+                </p>
+                
+                <!-- Security badges -->
+                <div class="flex flex-wrap justify-center mb-8">
+                    <span class="security-badge badge-light">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        Aman
+                    </span>
+                    <span class="security-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Kokoh
+                    </span>
+                    <span class="security-badge badge-light">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                        Tak Terdeteksi
+                    </span>
+                </div>
+                
+                <!-- Divider line -->
+                <div class="max-w-xl mx-auto mb-8 shine-effect relative">
+                    <div class="h-1 w-full bg-gradient-to-r from-gray-600 via-white to-gray-600 rounded-full"></div>
+                </div>
+                
+                <!-- Call to Action Buttons -->
+                <div class="flex flex-wrap justify-center gap-5">
+                    <a href="#image-stego" class="inline-block bg-white hover:from-gray-600 hover:to-gray-800 text-black font-semibold py-4 px-10 rounded-lg transition duration-300 shadow-md hover:shadow-xl btn-glow transform hover:scale-105">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                            </svg>
+                            Mulai Menyembunyikan Data
+                        </div>
+                    </a>
+                    <a href="#about" class="inline-block bg-transparent hover:bg-gray-800 text-gray-400 font-semibold py-4 px-10 rounded-lg transition duration-300 shadow-md hover:shadow-xl border border-gray-700 transform hover:scale-105">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Pelajari Lebih Lanjut
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Container -->
+    <div class="container mx-auto px-4 py-12 max-w-6xl">
+
+        <section class="relative mb-16">
+        <div class="relative z-10 px-8 py-20">
+            <!-- Header Section -->
+            <div class="text-center mb-24" data-aos="fade-up">
+            <div class="relative inline-flex items-center justify-center mb-8">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-green-500/20 rounded-full blur-2xl opacity-50 floating-animation"></div>
+                <div class="relative">
+                <h2 class="text-5xl md:text-7xl font-black leading-tight tracking-tight text-transparent" 
+                    style="-webkit-text-stroke: 2px white;">
+                    IMAGE STEGANOGRAPHY
+                </h2>
+                </div>
+            </div>
+            <div class="relative max-w-4xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+                <p class="text-xl md:text-2xl text-gray-300 mb-10 leading-relaxed font-light">
+                Sembunyikan dan ekstrak pesan rahasia dari gambar menggunakan teknik domain transformasi mutakhir
+                </p>
+                <div class="w-24 h-1 mx-auto bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 rounded-full"></div>
+            </div>
+            </div>
+
+            <!-- Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
+
+            <!-- Encode Card -->
+            <div class="group relative overflow-hidden rounded-3xl border border-white/30 backdrop-blur-xl bg-white/10 shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl" data-aos="fade-up" data-aos-delay="200">
+                <div class="relative z-10 p-8 h-full flex flex-col">
+                    <div class="mb-8">
+                        <div class="relative w-16 h-16 mx-auto mb-6">
+                            <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 rounded-2xl blur-lg opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+                            <div class="relative bg-gradient-to-r from-blue-500 to-blue-600 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white text-center mb-4">Encode Gambar</h3>
+                    </div>
+                    <div class="flex-grow">
+                        <p class="text-gray-300 text-lg leading-relaxed text-center">
+                            Sembunyikan pesan rahasia dalam gambar menggunakan teknik domain transformasi canggih dengan keamanan tingkat militer.
+                        </p>
+                    </div>
+                    <div class="mt-8">
+                        <a href="{{ url_for('encode') }}" class="w-full bg-white text-black font-semibold py-4 px-8 rounded-2xl transition-all duration-300 flex items-center justify-center group">
+                            <span>Mulai Encoding</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Decode Card -->
+            <div class="group relative overflow-hidden rounded-3xl border border-white/30 backdrop-blur-xl bg-white/10 shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl" data-aos="fade-up" data-aos-delay="300">
+                <div class="relative z-10 p-8 h-full flex flex-col">
+                    <div class="mb-8">
+                        <div class="relative w-16 h-16 mx-auto mb-6">
+                            <div class="absolute inset-0 bg-gradient-to-r from-green-400 to-green-600 rounded-2xl blur-lg opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+                            <div class="relative bg-gradient-to-r from-green-500 to-green-600 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white text-center mb-4">Decode Gambar</h3>
+                    </div>
+                    <div class="flex-grow">
+                        <p class="text-gray-300 text-lg leading-relaxed text-center">
+                            Ekstrak pesan tersembunyi dari gambar stego yang diencode menggunakan algoritma canggih kami.
+                        </p>
+                    </div>
+                    <div class="mt-8">
+                        <a href="{{ url_for('decode') }}" class="w-full bg-white text-black font-semibold py-4 px-8 rounded-2xl transition-all duration-300 flex items-center justify-center group">
+                            <span>Mulai Decoding</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Card -->
+            <div class="group relative overflow-hidden rounded-3xl border border-white/30 backdrop-blur-xl bg-white/10 shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl" data-aos="fade-up" data-aos-delay="400">
+                <div class="relative z-10 p-8 h-full flex flex-col">
+                    <div class="mb-8">
+                        <div class="relative w-16 h-16 mx-auto mb-6">
+                            <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-purple-600 rounded-2xl blur-lg opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+                            <div class="relative bg-gradient-to-r from-purple-500 to-purple-600 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white text-center mb-4">Analisis Gambar</h3>
+                    </div>
+                    <div class="flex-grow">
+                        <p class="text-gray-300 text-lg leading-relaxed text-center">
+                            Bandingkan gambar asli dan stego untuk mengevaluasi kualitas steganografi dengan metrik canggih.
+                        </p>
+                    </div>
+                    <div class="mt-8">
+                        <a href="{{ url_for('analyze') }}" class="w-full bg-white text-black font-semibold py-4 px-8 rounded-2xl transition-all duration-300 flex items-center justify-center group">
+                            <span>Analisis Gambar</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            </div>
+        </div>
+        </section>
+
+        <section class="relative mb-16">
+        <div class="relative z-10 px-8 py-20">
+            <div class="text-center mb-24" data-aos="fade-up">
+                <div class="relative inline-flex items-center justify-center mb-8">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-green-500/20 rounded-full blur-2xl opacity-50 floating-animation"></div>
+                    <div class="relative">
+                        <h2 class="text-5xl md:text-7xl font-black leading-tight tracking-tight text-transparent" 
+                            style="-webkit-text-stroke: 2px white;">
+                            AUDIO STEGANOGRAPHY
+                        </h2>
+                    </div>
+                </div>
+                <div class="relative max-w-4xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+                    <p class="text-xl md:text-2xl text-gray-300 mb-10 leading-relaxed font-light">
+                        Sembunyikan dan ekstrak pesan rahasia dari file audio menggunakan teknik domain transformasi canggih
+                    </p>
+                    <div class="w-24 h-1 mx-auto bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 rounded-full"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 max-w-7xl mx-auto">
+
+                <div class="group relative overflow-hidden rounded-3xl border border-white/30 backdrop-blur-xl bg-white/10 shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl" data-aos="fade-up" data-aos-delay="200">
+                    <div class="relative z-10 p-8 h-full flex flex-col">
+                        <div class="mb-8">
+                            <div class="relative w-16 h-16 mx-auto mb-6">
+                                <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-2xl blur-lg opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+                                <div class="relative bg-gradient-to-r from-yellow-500 to-yellow-600 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white text-center mb-4">Enkode Audio</h3>
+                        </div>
+                        <div class="flex-grow">
+                            <p class="text-gray-300 text-lg leading-relaxed text-center">
+                                Sembunyikan pesan rahasia dalam file audio menggunakan teknik domain transformasi canggih dengan keamanan tingkat militer.
+                            </p>
+                        </div>
+                        <div class="mt-8">
+                            <a href="{{ url_for('audio_encode') }}" class="w-full bg-white text-black font-semibold py-4 px-8 rounded-2xl transition-all duration-300 flex items-center justify-center group">
+                                <span>Mulai Enkode</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group relative overflow-hidden rounded-3xl border border-white/30 backdrop-blur-xl bg-white/10 shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl" data-aos="fade-up" data-aos-delay="300">
+                    <div class="relative z-10 p-8 h-full flex flex-col">
+                        <div class="mb-8">
+                            <div class="relative w-16 h-16 mx-auto mb-6">
+                                <div class="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-600 rounded-2xl blur-lg opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+                                <div class="relative bg-gradient-to-r from-orange-500 to-orange-600 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m0 0l-2.828 2.828m0 0a9 9 0 010-12.728m2.828 2.828a5 5 0 010 7.072M3 3l3 3m0 0l-3 3m3-3H6" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white text-center mb-4">Dekode Audio</h3>
+                        </div>
+                        <div class="flex-grow">
+                            <p class="text-gray-300 text-lg leading-relaxed text-center">
+                                Ekstrak pesan tersembunyi dari file audio stego yang dienkode menggunakan algoritma canggih kami.
+                            </p>
+                        </div>
+                        <div class="mt-8">
+                            <a href="{{ url_for('audio_decode') }}" class="w-full bg-white text-black font-semibold py-4 px-8 rounded-2xl transition-all duration-300 flex items-center justify-center group">
+                                <span>Mulai Dekode</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group relative overflow-hidden rounded-3xl border border-white/30 backdrop-blur-xl bg-white/10 shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl" data-aos="fade-up" data-aos-delay="400">
+                    <div class="relative z-10 p-8 h-full flex flex-col">
+                        <div class="mb-8">
+                            <div class="relative w-16 h-16 mx-auto mb-6">
+                                <div class="absolute inset-0 bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-2xl blur-lg opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+                                <div class="relative bg-gradient-to-r from-indigo-500 to-indigo-600 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold text-white text-center mb-4">Analisis Audio</h3>
+                        </div>
+                        <div class="flex-grow">
+                            <p class="text-gray-300 text-lg leading-relaxed text-center">
+                                Bandingkan file audio asli dan stego untuk mengevaluasi kualitas steganografi dengan metrik canggih.
+                            </p>
+                        </div>
+                        <div class="mt-8">
+                            <a href="{{ url_for('audio_analyze') }}" class="w-full bg-white text-black font-semibold py-4 px-8 rounded-2xl transition-all duration-300 flex items-center justify-center group">
+                                <span>Analisis Audio</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+        <section class="relative mb-16">
+            <div class="relative z-10 px-8 py-12">
+                <div class="text-center mb-16" data-aos="fade-up">
+                    <div class="relative inline-flex items-center justify-center mb-8">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-green-500/20 rounded-full blur-2xl opacity-50 floating-animation"></div>
+                        <div class="relative">
+                            <h2 class="text-5xl md:text-6xl font-black leading-tight tracking-tight text-transparent" 
+                                style="-webkit-text-stroke: 2px white;">
+                                ADDITIONAL TOOLS
+                            </h2>
+                        </div>
+                    </div>
+                    <div class="relative max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+                        <p class="text-xl md:text-2xl text-gray-300 mb-10 leading-relaxed font-light">
+                            Alat utilitas untuk mendukung alur kerja steganografi Anda
+                        </p>
+                        <div class="w-24 h-1 mx-auto bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 rounded-full"></div>
+                    </div>
+                </div>
+
+                <div class="max-w-md mx-auto">
+                    <div class="group relative overflow-hidden rounded-3xl border border-white/30 backdrop-blur-xl bg-white/10 shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl" data-aos="fade-up" data-aos-delay="200">
+                        <div class="relative z-10 p-8 h-full flex flex-col">
+                            <div class="mb-8">
+                                <div class="relative w-16 h-16 mx-auto mb-6">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-rose-400 to-rose-600 rounded-2xl blur-lg opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+                                    <div class="relative bg-gradient-to-r from-rose-500 to-rose-600 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <h3 class="text-2xl font-bold text-white text-center mb-4">Binary Decoder</h3>
+                            </div>
+                            <div class="flex-grow">
+                                <p class="text-gray-300 text-lg leading-relaxed text-center">
+                                    Konversi data biner ke teks dengan dukungan untuk Unicode dan data yang rusak.
+                                </p>
+                            </div>
+                            <div class="mt-8">
+                                <a href="{{ url_for('binary_decode') }}" class="w-full bg-white text-black font-semibold py-4 px-8 rounded-2xl transition-all duration-300 flex items-center justify-center group">
+                                    <span>Binary Decoder</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- About Section - Dark Mode -->
+        <section class="relative mb-16">
+            <div class="relative z-10 px-8 py-12">
+                <!-- Header Section -->
+                <div class="text-center mb-16" data-aos="fade-up">
+                    <div class="relative inline-flex items-center justify-center mb-8">
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-green-500/20 rounded-full blur-2xl opacity-50 floating-animation"></div>
+                        <div class="relative">
+                            <h2 class="text-5xl md:text-6xl font-black leading-tight tracking-tight text-transparent" 
+                                style="-webkit-text-stroke: 2px white;">
+                                HIDDENBYTE
+                            </h2>
+                        </div>
+                    </div>
+                    <div class="relative max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
+                        <p class="text-xl md:text-2xl text-gray-300 mb-10 leading-relaxed font-light">
+                            Teknik canggih untuk menyembunyikan data dalam domain transformasi
+                        </p>
+                        <div class="w-24 h-1 mx-auto bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 rounded-full"></div>
+                    </div>
+                </div>
+
+                <!-- Main Card -->
+                <div class="max-w-4xl mx-auto">
+                    <div class="group relative overflow-hidden rounded-3xl border border-white/30 backdrop-blur-xl bg-white/10 shadow-lg transition-transform transform hover:scale-[1.02] hover:shadow-2xl" data-aos="fade-up" data-aos-delay="200">
+                        <div class="relative z-10 p-8 md:p-10">
+                            <p class="text-gray-300 text-lg mb-8 leading-relaxed text-center">
+                                Aplikasi ini menyediakan fungsi steganografi menggunakan teknik domain transformasi yang lebih kuat dibandingkan teknik domain spasial seperti substitusi LSB (Least Significant Bit).
+                            </p>
+                            
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <!-- DCT -->
+                                <div class="bg-white/5 rounded-2xl border border-white/10 p-6 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
+                                    <div class="flex items-start">
+                                        <div class="bg-blue-500/20 p-3 rounded-xl mr-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-white mb-2">DCT (Transformasi Kosinus Diskrit)</h4>
+                                            <p class="text-gray-300 text-sm">Menyembunyikan data dalam koefisien frekuensi setelah transformasi DCT</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Wavelet -->
+                                <div class="bg-white/5 rounded-2xl border border-white/10 p-6 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
+                                    <div class="flex items-start">
+                                        <div class="bg-green-500/20 p-3 rounded-xl mr-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-white mb-2">Transformasi Wavelet</h4>
+                                            <p class="text-gray-300 text-sm">Menyisipkan data dalam koefisien wavelet gambar atau audio</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- DFT -->
+                                <div class="bg-white/5 rounded-2xl border border-white/10 p-6 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
+                                    <div class="flex items-start">
+                                        <div class="bg-purple-500/20 p-3 rounded-xl mr-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-white mb-2">DFT (Transformasi Fourier Diskrit)</h4>
+                                            <p class="text-gray-300 text-sm">Menyembunyikan data dalam nilai magnitudo frekuensi</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- SVD -->
+                                <div class="bg-white/5 rounded-2xl border border-white/10 p-6 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
+                                    <div class="flex items-start">
+                                        <div class="bg-indigo-500/20 p-3 rounded-xl mr-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-white mb-2">SVD (Dekomposisi Nilai Singular)</h4>
+                                            <p class="text-gray-300 text-sm">Menyisipkan data dengan memodifikasi nilai singular</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Centered LBP Card -->
+                            <div class="mt-6 flex justify-center">
+                                <div class="bg-white/5 rounded-2xl border border-white/10 p-6 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 max-w-md w-full">
+                                    <div class="flex items-start">
+                                        <div class="bg-yellow-500/20 p-3 rounded-xl mr-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-white mb-2">LBP (Pola Biner Lokal)</h4>
+                                            <p class="text-gray-300 text-sm">Memanfaatkan pola tekstur untuk steganografi</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Why Transform Domain Panel -->
+                            <div class="mt-10 p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl border border-white/10">
+                                <div class="flex">
+                                    <div class="flex-shrink-0 text-blue-400 mr-4">
+                                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-semibold text-white mb-2">Mengapa Domain Transformasi?</h4>
+                                        <p class="text-gray-300">Metode ini lebih kuat dibandingkan teknik domain spasial, menawarkan ketahanan yang lebih baik terhadap kompresi, penyaringan, dan operasi pengolahan gambar umum lainnya yang mungkin merusak data tersembunyi.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    
+    <script>
+        // Initialize AOS animation library
+        document.addEventListener('DOMContentLoaded', function() {
+            AOS.init();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encode Pesan - Audio Steganography</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                },
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fefce8',
+                            100: '#fef9c3',
+                            200: '#fef08a',
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                            700: '#a16207',
+                            800: '#854d0e',
+                            900: '#713f12',
+                        },
+                        dark: {
+                            900: '#0a0a0a',
+                            800: '#1a1a1a',
+                            700: '#2a2a2a',
+                            600: '#3a3a3a',
+                        }
+                    },
+                    boxShadow: {
+                        'glow': '0 0 15px rgba(234, 179, 8, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: radial-gradient(circle at 10% 20%, rgba(234, 179, 8, 0.1) 0%, rgba(202, 138, 4, 0.05) 90%);
+        }
+        .method-card {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .method-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+        .method-card.selected::before {
+            background: linear-gradient(90deg, #eab308, #ca8a04);
+        }
+        .method-card:hover::before {
+            background: linear-gradient(90deg, #eab308, #ca8a04);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #eab308;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.2);
+        }
+        .file-upload-label:hover .file-upload-box {
+            border-color: #eab308;
+            box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2);
+        }
+        .animate-pulse-slow {
+            animation: pulse 3s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+        .slider-value {
+            background: linear-gradient(135deg, #eab308, #ca8a04);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            min-width: 32px;
+            text-align: center;
+        }
+        #audio-preview {
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-gray-100 min-h-screen font-sans gradient-bg">
+    <div class="container mx-auto px-4 py-12 max-w-6xl">
+        <nav class="mb-8">
+            <ol class="flex items-center space-x-2 text-sm text-gray-400">
+                <li><a href="{{ url_for('index') }}" class="flex items-center text-primary-400 hover:text-primary-300 transition-colors group">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 group-hover:text-primary-300 transition-colors" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                    </svg>
+                    Beranda
+                </a></li>
+                <li class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </li>
+                <li class="text-gray-300 font-medium">Audio Encode</li>
+            </ol>
+        </nav>
+
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-100 mb-2">Encode Pesan Rahasia dalam Audio</h1>
+                <p class="text-gray-400">Sembunyikan pesan Anda dalam file audio menggunakan teknik steganografi canggih</p>
+            </div>
+            <div class="hidden md:block animate-pulse-slow">
+                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-primary-900 bg-opacity-30 border border-primary-700 border-opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="bg-yellow-900 bg-opacity-30 border-l-4 border-yellow-500 text-yellow-200 p-4 mb-6 rounded-lg flex items-start" role="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+                <p>{{ message }}</p>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        <div class="bg-dark-800 rounded-2xl shadow-xl overflow-hidden border border-dark-700 backdrop-blur-sm">
+            <div class="p-8">
+                <form action="{{ url_for('audio_encode') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-10">
+                        <label class="block text-gray-300 text-sm font-semibold mb-4 uppercase tracking-wider">Metode Transformasi Audio</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="method-card selected rounded-xl p-5 cursor-pointer bg-dark-700 hover:bg-dark-600 border border-dark-600" 
+                                 onclick="selectMethod(this, 'DCT')">
+                                <input type="radio" name="method" id="dct" value="DCT" class="hidden" checked>
+                                <div class="text-center">
+                                    <div class="flex justify-center mb-2">
+                                        <div class="w-10 h-10 rounded-full bg-primary-900 bg-opacity-30 flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="font-semibold text-gray-100">DCT</div>
+                                    <div class="text-xs text-gray-400 mt-1">Discrete Cosine Transform</div>
+                                </div>
+                            </div>
+                            
+                            <div class="method-card rounded-xl p-5 cursor-pointer bg-dark-700 hover:bg-dark-600 border border-dark-600" 
+                                 onclick="selectMethod(this, 'Wavelet')">
+                                <input type="radio" name="method" id="wavelet" value="Wavelet" class="hidden">
+                                <div class="text-center">
+                                    <div class="flex justify-center mb-2">
+                                        <div class="w-10 h-10 rounded-full bg-dark-600 flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="font-semibold text-gray-100">Wavelet</div>
+                                    <div class="text-xs text-gray-400 mt-1">Wavelet Transform</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-10">
+                        <div class="flex items-center justify-between mb-4">
+                            <label class="block text-gray-300 text-sm font-semibold uppercase tracking-wider">Kekuatan Penyisipan</label>
+                            <div class="slider-value" id="strength-value">0.1</div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-gray-400 text-sm w-12">Rendah</span>
+                            <input type="range" id="strength" name="strength" min="0.01" max="0.5" step="0.01" value="0.1"
+                                   class="w-full h-2 bg-dark-600 rounded-lg appearance-none cursor-pointer"
+                                   oninput="updateStrengthValue(this.value)">
+                            <span class="text-gray-400 text-sm w-12">Tinggi</span>
+                        </div>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-xs text-gray-500">Tersembunyi</span>
+                            <span class="text-xs text-gray-500">Kuat</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-3">Nilai yang lebih tinggi memastikan ekstraksi pesan yang lebih baik tetapi dapat memengaruhi kualitas audio. Rekomendasi: 0.1-0.2 untuk sebagian besar kasus.</p>
+                    </div>
+                    
+                    <div class="mb-10">
+                        <label class="block text-gray-300 text-sm font-semibold mb-4 uppercase tracking-wider">Audio Cover</label>
+                        <label for="cover_audio" class="file-upload-label">
+                            <div class="file-upload-box border-2 border-dashed border-dark-600 rounded-xl p-6 text-center transition-all cursor-pointer hover:border-primary-500">
+                                <div class="flex flex-col items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary-500 mb-3" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" />
+                                    </svg>
+                                    <p class="text-gray-300 font-medium">Klik untuk mengunggah file audio</p>
+                                    <p class="text-gray-500 text-sm mt-1">WAV, FLAC, MP3, atau OGG (Maks 10MB)</p>
+                                </div>
+                                <input class="hidden" type="file" id="cover_audio" name="cover_audio" accept="audio/*" onchange="previewAudio()">
+                            </div>
+                        </label>
+                        <div class="mt-6 text-center">
+                            <audio id="audio-preview" controls class="mx-auto rounded-lg border border-dark-600 bg-dark-700"></audio>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-10">
+                        <label for="secret_message" class="block text-gray-300 text-sm font-semibold mb-4 uppercase tracking-wider">Pesan Rahasia</label>
+                        <div class="relative">
+                            <textarea class="w-full text-gray-200 bg-dark-700 border border-dark-600 rounded-xl py-4 px-5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-gray-500 resize-none" 
+                                      id="secret_message" name="secret_message" rows="5" required maxlength="1000" placeholder="Masukkan pesan rahasia Anda di sini..."></textarea>
+                            <div class="absolute bottom-3 right-3 text-xs text-gray-500">
+                                <span id="char-count">0</span>/1000
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2" id="ascii-warning">Pesan sebaiknya berupa teks ASCII untuk kompatibilitas terbaik.</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="relative overflow-hidden bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold py-4 px-12 rounded-xl transition-all duration-300 shadow-lg hover:shadow-glow group">
+                            <span class="relative z-10 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" />
+                                </svg>
+                                Encode Pesan
+                            </span>
+                            <span class="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="mt-10 bg-dark-800 rounded-2xl p-6 border border-dark-700">
+            <div class="flex items-center mb-4">
+                <h3 class="font-semibold text-primary-400 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+                    </svg>
+                    Informasi Audio Steganography
+                </h3>
+            </div>
+            <div id="method-info" class="text-sm text-gray-300 space-y-2">
+                <p><strong class="text-primary-300">DCT (Discrete Cosine Transform):</strong> Menyembunyikan data dalam koefisien frekuensi audio. Teknik ini memodifikasi komponen frekuensi menengah dari sinyal audio, yang kurang terlihat oleh telinga manusia.</p>
+                <p class="text-xs text-gray-500 mt-2">Direkomendasikan untuk: Sebagian besar jenis audio, memberikan keseimbangan yang baik antara ketidakterlihatan dan ketahanan.</p>
+            </div>
+        </div>
+    </div>
+  
+
+    <script>
+        function updateStrengthValue(value) {
+            document.getElementById('strength-value').textContent = value;
+        }
+
+        function previewAudio() {
+            const preview = document.getElementById('audio-preview');
+            const file = document.getElementById('cover_audio').files[0];
+            
+            if (file) {
+                const url = URL.createObjectURL(file);
+                preview.src = url;
+                preview.style.display = 'block';
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+        }
+        
+        function selectMethod(element, method) {
+            // Update radio selection
+            document.getElementById(method.toLowerCase()).checked = true;
+            
+            // Update UI
+            document.querySelectorAll('.method-card').forEach(card => {
+                card.classList.remove('selected', 'bg-dark-600');
+                card.classList.add('bg-dark-700');
+            });
+            
+            element.classList.add('selected', 'bg-dark-600');
+            element.classList.remove('bg-dark-700');
+            
+            // Update method info
+            const methodInfo = document.getElementById('method-info');
+            switch(method) {
+                case 'DCT':
+                    methodInfo.innerHTML = `
+                        <p><strong class="text-primary-300">DCT (Discrete Cosine Transform):</strong> Menyembunyikan data dalam koefisien frekuensi audio. Teknik ini memodifikasi komponen frekuensi menengah dari sinyal audio, yang kurang terlihat oleh telinga manusia.</p>
+                        <p class="text-xs text-gray-500 mt-2">Direkomendasikan untuk: Sebagian besar jenis audio, memberikan keseimbangan yang baik antara ketidakterlihatan dan ketahanan.</p>
+                    `;
+                    break;
+                case 'Wavelet':
+                    methodInfo.innerHTML = `
+                        <p><strong class="text-primary-300">Wavelet Transform:</strong> Menyisipkan data dalam koefisien wavelet, menawarkan lokalisasi waktu-frekuensi yang efisien. Pendekatan ini memberikan keseimbangan yang baik antara ketahanan dan ketidakterlihatan.</p>
+                        <p class="text-xs text-gray-500 mt-2">Direkomendasikan untuk: File audio yang mungkin mengalami kompresi atau penyaringan, menawarkan analisis multi-resolusi.</p>
+                    `;
+                    break;
+            }
+        }
+
+        // Character count and ASCII detection for textarea
+        const textarea = document.getElementById('secret_message');
+        const charCount = document.getElementById('char-count');
+        const asciiWarning = document.getElementById('ascii-warning');
+        
+        textarea.addEventListener('input', function() {
+            const currentLength = this.value.length;
+            charCount.textContent = currentLength;
+            
+            if (currentLength > 1000) {
+                charCount.classList.add('text-red-400');
+            } else {
+                charCount.classList.remove('text-red-400');
+            }
+
+            // Check for non-ASCII characters
+            let nonAsciiCount = 0;
+            for (let i = 0; i < this.value.length; i++) {
+                if (this.value.charCodeAt(i) > 127) {
+                    nonAsciiCount++;
+                }
+            }
+            
+            if (nonAsciiCount > 0) {
+                asciiWarning.innerHTML = `Pesan sebaiknya berupa teks ASCII untuk kompatibilitas terbaik. <span class="text-red-400">(${nonAsciiCount} karakter non-ASCII mungkin tidak terencode dengan benar)</span>`;
+            } else {
+                asciiWarning.textContent = 'Pesan sebaiknya berupa teks ASCII untuk kompatibilitas terbaik.';
+            }
+        });
+    </script>
+</body>
+</html>

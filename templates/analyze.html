@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis Gambar - Steganografi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                },
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#faf5ff',
+                            100: '#f3e8ff',
+                            200: '#e9d5ff',
+                            300: '#d8b4fe',
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7e22ce',
+                            800: '#6b21a8',
+                            900: '#581c87',
+                        },
+                        dark: {
+                            900: '#0a0a0a',
+                            800: '#1a1a1a',
+                            700: '#2a2a2a',
+                            600: '#3a3a3a',
+                        }
+                    },
+                    boxShadow: {
+                        'glow': '0 0 15px rgba(168, 85, 247, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+         .gradient-bg {
+        background: radial-gradient(circle at 10% 20%, rgba(168, 85, 247, 0.1) 0%, rgba(147, 51, 234, 0.05) 90%);
+    }
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            transition: all 0.3s ease;
+        }
+        .file-upload-label:hover .file-upload-box {
+        border-color: #a855f7;
+        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+    }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-gray-100 min-h-screen font-sans gradient-bg">
+    <div class="container mx-auto px-4 py-12 max-w-6xl">
+        <!-- Navigation -->
+        <nav class="mb-8">
+            <ol class="flex items-center space-x-2 text-sm text-gray-400">
+                <li><a href="{{ url_for('index') }}" class="flex items-center text-primary-400 hover:text-primary-300 transition-colors group">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                    </svg>
+                    Beranda
+                </a></li>
+                <li class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </li>
+                <li class="text-gray-300 font-medium">Analisis Gambar</li>
+            </ol>
+        </nav>
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-100 mb-2">Analisis Kualitas Steganografi</h1>
+                <p class="text-gray-400">Evaluasi kualitas dan imperceptibility steganografi dengan membandingkan gambar asli dan stego</p>
+            </div>
+            <div class="hidden md:block animate-float">
+                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-primary-900 bg-opacity-30 border border-primary-700 border-opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-dark-800 rounded-2xl shadow-xl overflow-hidden border border-dark-700 backdrop-blur-sm">
+            <div class="p-8">
+                <form action="{{ url_for('analyze') }}" method="post" enctype="multipart/form-data">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Original Image Upload -->
+                        <div class="space-y-4">
+                            <label class="block text-gray-300 text-sm font-semibold uppercase tracking-wider mb-4">Gambar Asli</label>
+                            <label class="file-upload-label block mt-6">
+                                <div class="file-upload-box border-2 border-dashed border-dark-600 rounded-xl p-6 text-center transition-all cursor-pointer hover:border-primary-500">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary-500 mb-3" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                                        </svg>
+                                        <p class="text-gray-300 font-medium">Klik untuk unggah gambar asli</p>
+                                        <p class="text-gray-500 text-sm mt-1">PNG, JPG, JPEG atau BMP</p>
+                                    </div>
+                                    <input type="file" id="original_image" name="original_image" accept="image/*" 
+                                           class="hidden" onchange="previewImage(this, 'original-preview')">
+                                </div>
+                            </label>
+                            <div class="mt-4">
+                                <img id="original-preview" class="image-preview hidden mx-auto rounded-xl border border-dark-600" alt="Preview">
+                            </div>
+                        </div>
+
+                        <!-- Stego Image Upload -->
+                        <div class="space-y-4">
+                           <label class="block text-gray-300 text-sm font-semibold uppercase tracking-wider mb-4">Gambar Stego</label>
+                           <label class="file-upload-label block mt-6">
+                                <div class="file-upload-box border-2 border-dashed border-dark-600 rounded-xl p-6 text-center transition-all cursor-pointer hover:border-primary-500">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary-500 mb-3" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                                        </svg>
+                                        <p class="text-gray-300 font-medium">Klik untuk unggah gambar stego</p>
+                                        <p class="text-gray-500 text-sm mt-1">PNG, JPG, JPEG atau BMP</p>
+                                    </div>
+                                    <input type="file" id="stego_image" name="stego_image" accept="image/*" 
+                                           class="hidden" onchange="previewImage(this, 'stego-preview')">
+                                </div>
+                            </label>
+                            <div class="mt-4">
+                                <img id="stego-preview" class="image-preview hidden mx-auto rounded-xl border border-dark-600" alt="Preview">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-center mt-8">
+                        <button type="submit" class="relative overflow-hidden bg-gradient-to-r from-primary-600 to-primary-700 
+                                                   text-white font-semibold py-4 px-12 rounded-xl transition-all duration-300 
+                                                   shadow-lg hover:shadow-glow group">
+                            <span class="relative z-10 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                                </svg>
+                                Analisis Gambar
+                            </span>
+                            <span class="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-600 opacity-0 
+                                       group-hover:opacity-100 transition-opacity duration-300"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="mt-10 bg-dark-800 rounded-2xl p-6 border border-dark-700">
+            <div class="flex items-center mb-4">
+                <h3 class="font-semibold text-primary-400 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+                    </svg>
+                    Tentang Analisis Gambar
+                </h3>
+            </div>
+            <div class="text-sm text-gray-300 space-y-2">
+                <p>• PSNR (Peak Signal-to-Noise Ratio) mengukur kualitas gambar stego</p>
+                <p>• MSE (Mean Squared Error) menunjukkan tingkat distorsi gambar</p>
+                <p>• Analisis histogram membantu mendeteksi perubahan statistik</p>
+                <p>• Nilai PSNR yang lebih tinggi menunjukkan steganografi yang lebih baik</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const file = input.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                preview.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

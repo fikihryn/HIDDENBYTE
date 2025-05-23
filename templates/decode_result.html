@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasil Decode - Steganografi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                },
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        dark: {
+                            900: '#0a0a0a',
+                            800: '#1a1a1a',
+                            700: '#2a2a2a',
+                            600: '#3a3a3a',
+                        }
+                    },
+                    boxShadow: {
+                        'glow': '0 0 15px rgba(34, 197, 94, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-bg {
+            background: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.05) 90%);
+        }
+        .code-box {
+            background: #1a1a1a;
+            border-radius: 0.75rem;
+            border: 1px solid #3a3a3a;
+            position: relative;
+            overflow: hidden;
+        }
+        .code-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2a2a2a;
+        }
+        .tab-selector {
+            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #9ca3af;
+            border: 1px solid #3a3a3a;
+        }
+        .tab-selector.active {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+        }
+        .tab-selector:hover:not(.active) {
+            background: #3a3a3a;
+            color: #22c55e;
+            border-color: #22c55e;
+        }
+        .animate-pulse-slow {
+            animation: pulse 3s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+        .copy-btn {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+        }
+        .success-alert {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.05));
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 0.75rem;
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-gray-100 min-h-screen font-sans gradient-bg">
+    <div class="container mx-auto px-4 py-12 max-w-6xl">
+        <nav class="mb-8">
+            <ol class="flex items-center space-x-2 text-sm text-gray-400">
+                <li><a href="{{ url_for('index') }}" class="flex items-center text-primary-400 hover:text-primary-300 transition-colors group">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 group-hover:text-primary-300 transition-colors" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                    </svg>
+                    Beranda
+                </a></li>
+                <li class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </li>
+                <li><a href="{{ url_for('decode') }}" class="text-primary-400 hover:text-primary-300 transition-colors">Decode Pesan</a></li>
+                <li class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mx-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </li>
+                <li class="text-gray-300 font-medium">Hasil</li>
+            </ol>
+        </nav>
+
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-100 mb-2">Hasil Ekstraksi Pesan</h1>
+                <p class="text-gray-400">Pesan tersembunyi berhasil diekstrak dari gambar</p>
+            </div>
+            <div class="hidden md:block animate-pulse-slow">
+                <div class="flex items-center justify-center w-16 h-16 rounded-full bg-primary-900 bg-opacity-30 border border-primary-700 border-opacity-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="success-alert p-6 mb-8 flex items-start" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-400 mr-3 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <div>
+                <h4 class="font-bold text-primary-200 mb-1">Berhasil!</h4>
+                <p class="text-primary-100">Pesan tersembunyi telah berhasil diekstrak dari gambar.</p>
+            </div>
+        </div>
+        
+        <div class="flex flex-col lg:flex-row gap-8">
+            <div class="lg:w-2/5">
+                <div class="bg-dark-800 rounded-2xl shadow-xl overflow-hidden border border-dark-700 backdrop-blur-sm">
+                    <div class="border-b border-dark-700 px-6 py-4 bg-dark-700">
+                        <h5 class="font-semibold text-lg text-gray-100 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                            </svg>
+                            Gambar Stego
+                        </h5>
+                    </div>
+                    <div class="p-6 text-center">
+                        <img src="{{ url_for('uploaded_file', filename=filename) }}" class="mx-auto max-h-80 border border-dark-600 rounded-xl shadow-lg hover:shadow-glow transition-all duration-300" alt="Gambar Stego">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="lg:w-3/5">
+                <div class="bg-dark-800 rounded-2xl shadow-xl overflow-hidden border border-dark-700 backdrop-blur-sm">
+                    <div class="border-b border-dark-700 px-6 py-4 bg-dark-700">
+                        <h5 class="font-semibold text-lg text-gray-100 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-primary-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                            </svg>
+                            Pesan yang Diekstrak
+                        </h5>
+                    </div>
+                    <div class="p-6">
+                        <div class="code-box">
+                            <div class="code-header">
+                                <div class="flex space-x-3">
+                                    <button onclick="showTab('text')" id="text-btn" class="tab-selector active">Teks</button>
+                                    <button onclick="showTab('binary')" id="binary-btn" class="tab-selector">Binary</button>
+                                    <button onclick="showTab('hex')" id="hex-btn" class="tab-selector">Hex</button>
+                                </div>
+                                <button onclick="copyMessage()" class="copy-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                    </svg>
+                                    Salin
+                                </button>
+                            </div>
+                            
+                            <div id="text-tab" class="p-6">
+                                {% if message.strip() %}
+                                    <pre id="message-content" class="whitespace-pre-wrap break-words text-gray-200 font-mono text-sm leading-relaxed">{{ message }}</pre>
+                                {% else %}
+                                    <div class="text-center text-gray-400 italic py-12">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        <p class="text-lg font-medium">Pesan Kosong</p>
+                                        <p class="text-sm mt-1">Pesan yang diekstrak tampaknya kosong atau hanya berisi spasi.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div id="binary-tab" class="p-6 overflow-auto max-h-96 hidden">
+                                <div id="binary-content" class="text-xs font-mono break-all text-gray-300 leading-relaxed"></div>
+                            </div>
+                            
+                            <div id="hex-tab" class="p-6 overflow-auto max-h-96 hidden">
+                                <div id="hex-content" class="text-xs font-mono break-all text-gray-300 leading-relaxed"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 p-4 bg-dark-700 rounded-xl border border-dark-600">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Panjang Pesan:</span>
+                                    <span class="text-gray-200 font-medium">{{ message|length }} karakter</span>
+                                </div>
+                                {% if message|length > 0 %}
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Ukuran dalam Bit:</span>
+                                    <span class="text-gray-200 font-medium">{{ message|length * 8 }} bit</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-12 space-y-4">
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{{ url_for('decode') }}" class="relative overflow-hidden bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-glow group">
+                    <span class="relative z-10 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Decode Gambar Lain
+                    </span>
+                    <span class="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                </a>
+                <a href="{{ url_for('index') }}" class="bg-dark-700 hover:bg-dark-600 text-gray-100 font-semibold py-4 px-8 border border-dark-600 rounded-xl transition-all duration-300 inline-flex items-center justify-center group">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 group-hover:text-primary-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Kembali ke Beranda
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-12 bg-dark-800 rounded-2xl p-6 border border-dark-700">
+            <div class="flex items-center mb-4">
+                <h3 class="font-semibold text-primary-400 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clip-rule="evenodd" />
+                    </svg>
+                    Informasi Hasil
+                </h3>
+            </div>
+            <div class="text-sm text-gray-300 space-y-2">
+                <p>• Pesan telah berhasil diekstrak menggunakan metode transform yang dipilih</p>
+                <p>• Anda dapat menyalin pesan dalam format teks, binary, atau hexadecimal</p>
+                <p>• Jika hasil tidak sesuai, coba sesuaikan parameter atau metode yang digunakan</p>
+                <p>• Pastikan gambar yang digunakan adalah hasil dari proses encode yang sama</p>
+            </div>
+        </div>
+    </div>
+
+    
+    <script>
+        let currentTab = 'text';
+        
+        function showTab(tabName) {
+            // Hide all tabs
+            document.getElementById('text-tab').classList.add('hidden');
+            document.getElementById('binary-tab').classList.add('hidden');
+            document.getElementById('hex-tab').classList.add('hidden');
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            // Update button states
+            document.querySelectorAll('.tab-selector').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabName + '-btn').classList.add('active');
+            
+            currentTab = tabName;
+            
+            // Generate content for binary and hex tabs
+            if (tabName === 'binary') {
+                showBinary();
+            } else if (tabName === 'hex') {
+                showHex();
+            }
+        }
+        
+        function copyMessage() {
+            let textToCopy = '';
+            const messageElement = document.getElementById('message-content');
+            
+            if (currentTab === 'text') {
+                textToCopy = messageElement?.textContent || '';
+            } else if (currentTab === 'binary') {
+                textToCopy = document.getElementById('binary-content')?.textContent || '';
+            } else if (currentTab === 'hex') {
+                textToCopy = document.getElementById('hex-content')?.textContent || '';
+            }
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Pesan berhasil disalin!',
+                    showConfirmButton: false,
+                    timer: 1500,
+                    toast: true,
+                    background: '#1a1a1a',
+                    color: '#f3f4f6'
+                });
+            }, (err) => {
+                console.error('Tidak dapat menyalin teks: ', err);
+                Swal.fire({
+                    position: 'top-end',
+                    icon: 'error',
+                    title: 'Gagal menyalin ke clipboard',
+                    text: err.toString(),
+                    showConfirmButton: false,
+                    timer: 1500,
+                    toast: true,
+                    background: '#1a1a1a',
+                    color: '#f3f4f6'
+                });
+            });
+        }
+        
+        function showBinary() {
+            const message = document.getElementById('message-content')?.textContent || '';
+            const binaryContent = document.getElementById('binary-content');
+            
+            if (message.length > 0) {
+                let binaryStr = '';
+                const encoder = new TextEncoder();
+                const bytes = encoder.encode(message);
+                
+                for (let i = 0; i < bytes.length; i++) {
+                    if (i > 0 && i % 8 === 0) binaryStr += '<br>';
+                    else if (i > 0) binaryStr += ' ';
+                    
+                    const binary = bytes[i].toString(2).padStart(8, '0');
+                    
+                    const spans = binary.split('').map(bit => 
+                        `<span class="${bit === '1' ? 'text-primary-400 font-semibold' : 'text-gray-500'}">${bit}</span>`
+                    ).join('');
+                    
+                    binaryStr += spans;
+                }
+                binaryContent.innerHTML = binaryStr;
+            } else {
+                binaryContent.innerHTML = '<div class="flex items-center justify-center h-32 text-gray-500">Tidak ada pesan untuk dikonversi ke binary</div>';
+            }
+        }
+        
+        function showHex() {
+            const message = document.getElementById('message-content')?.textContent || '';
+            const hexContent = document.getElementById('hex-content');
+            
+            if (message.length > 0) {
+                let hexStr = '';
+                const encoder = new TextEncoder();
+                const bytes = encoder.encode(message);
+                
+                for (let i = 0; i < bytes.length; i++) {
+                    if (i > 0 && i % 16 === 0) hexStr += '<br>';
+                    else if (i > 0) hexStr += ' ';
+                    
+                    const hex = bytes[i].toString(16).padStart(2, '0').toUpperCase();
+                    hexStr += `<span class="text-purple-400 font-semibold">${hex}</span>`;
+                }
+                hexContent.innerHTML = hexStr;
+            } else {
+                hexContent.innerHTML = '<div class="flex items-center justify-center h-32 text-gray-500">Tidak ada pesan untuk dikonversi ke hexadecimal</div>';
+            }
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            showTab('text');
+        });
+    </script>
+</body>
+</html>
