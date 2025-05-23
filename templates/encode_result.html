@@ -134,6 +134,7 @@
                         <img src="{{ url_for('output_file', filename=filename) }}" class="mx-auto max-h-96 rounded-xl border border-dark-600 shadow-lg" alt="Gambar Stego">
                         <div class="mt-6">
                             <a href="{{ url_for('output_file', filename=filename) }}" 
+                               download="{{ filename }}"
                                class="relative overflow-hidden bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-glow group inline-flex items-center">
                                 <span class="relative z-10 flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
